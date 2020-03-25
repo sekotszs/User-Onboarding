@@ -16,7 +16,7 @@ function Form() {
         name: '',
         email: '',
         password: '',
-        terms: '',
+        terms: false
     })
 
 //setting up state for errors
@@ -30,6 +30,8 @@ function Form() {
 //setting state for button as disbaled
     const [buttonDisabled, setButtonDisabled] = useState(true);
 
+    const [response, setResponse] = useState();
+
 // validating use effect
     useEffect(() =>{
     formSchema.isValid(formState).then(valid =>{
@@ -38,19 +40,52 @@ function Form() {
     }, [formState]);
 
 //validating change
-    const validateChange = e => {
-        yup.reach(formSchema, e.target.name).validate(e.target.value).then(valid => 
+    const validateChange = (targetName,targetValue) => {
+        yup.reach(formSchema,targetName).validate(targetValue).then(valid => 
         {setErrors({
         ...errors,
-        [e.target.name]:''
+        [targetName]:''
         })
     })
     .catch(err => {
         setErrors({
             ...errors,
-            [e.target.name]: err.errors
+            [targetName]: err.errors
         })
     })
+    }
+
+    const formSubmit = e => {
+        e.preventDefault();
+        axios.post("https://reqres.in/api/users", formState)
+        .then(res => {
+            setResponse(res.data);
+            console.log('success', response)
+
+//clears the data
+            setFormState({
+                name:'',
+                email: '',
+                password:'',
+                terms: false
+            });
+        })
+        .catch(err =>{
+            console.log(err.response);
+        });
+    };
+
+    const inputChange = e => {
+        e.persist();
+        const targetName = e.target.name
+        const targetValue = e.target.type === "checkbox" ? e.target.checked : e.target.value
+        const newFormData = {
+            ...formState,
+           [targetName]: targetValue
+            
+        };
+        validateChange(targetName, targetValue);
+        setFormState(newFormData);
     }
     
     return (
@@ -92,14 +127,15 @@ function Form() {
                 Terms
         <input
                     id='terms'
-                    type='text'
+                    type='checkbox'
                     name='terms'
-                    value={formState.terms}
+                    checked={formState.terms}
                     onChange={inputChange}
                 />
                 {errors.terms.length > 0 ? <p>{errors.terms}</p> :null}
 
             </label>
+            <button disabled={buttonDisabled}>Submit</button>
 
 
         </form>

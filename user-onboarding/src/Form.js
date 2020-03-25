@@ -26,6 +26,9 @@ function Form() {
         password:'',
         terms:'',
     });
+//display returned data
+    const [user, setUser] = useState([]);
+
     
 //setting state for button as disbaled
     const [buttonDisabled, setButtonDisabled] = useState(true);
@@ -59,7 +62,7 @@ function Form() {
         e.preventDefault();
         axios.post("https://reqres.in/api/users", formState)
         .then(res => {
-            setResponse(res.data);
+            setUser(existing => [...existing, res.data]);
             console.log('success', response)
 
 //clears the data
@@ -87,8 +90,10 @@ function Form() {
         validateChange(targetName, targetValue);
         setFormState(newFormData);
     }
+
     
     return (
+        <div>
         <form onSubmit={formSubmit}>
             <label htmlFor="name">
                 Name
@@ -135,10 +140,14 @@ function Form() {
                 {errors.terms.length > 0 ? <p>{errors.terms}</p> :null}
 
             </label>
+ 
             <button disabled={buttonDisabled}>Submit</button>
 
 
         </form>
+        {user.map(user =>
+            <p>{user.name} {user.email}</p>)}
+        </div>
     )
 }
 export default Form;
